@@ -14,7 +14,8 @@ São duas fontes separadas: o vídeo vem do `video.mp4` e o áudio vem do `audio
 | `video.mp4` | Fonte de vídeo: H.264 (High Profile, 1280x720, 30 fps), 6,27 s. Também tem uma faixa de áudio AAC, que a aplicação não usa |
 | `audio.ogg` | Fonte de áudio: Opus, 16 kHz, mono, 8,02 s (decodificado para PCM pela pipeline) |
 | `audio.wav` | Não é mais usado pela aplicação (versão anterior, gerada com `audiotestsrc`); pode ser apagado |
-| `Sem título-2026-09-30-2133.png` | Diagrama da pipeline de vídeo |
+| `pipeline_video.excalidraw` | Diagrama da pipeline de vídeo (atual, com o `videoscale`) |
+| `Sem título-2026-09-30-2133.png` | Diagrama antigo da pipeline de vídeo (sem o `videoscale`) |
 | `pipeline_audio.excalidraw` | Diagrama da pipeline de áudio |
 | `README.md` | Este arquivo |
 
@@ -190,5 +191,6 @@ O código original não libera `msg`, `bus` nem muda a pipeline para `GST_STATE_
 
 ## Diagramas
 
-- `Sem título-2026-09-30-2133.png`: pipeline de vídeo.
+- `pipeline_video.excalidraw`: pipeline de vídeo (abrir em excalidraw.com).
+- `Sem título-2026-09-30-2133.png`: versão antiga do diagrama de vídeo, sem o `videoscale`.
 - `pipeline_audio.excalidraw`: pipeline de áudio (abrir em excalidraw.com).
