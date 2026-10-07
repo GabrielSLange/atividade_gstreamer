@@ -22,13 +22,14 @@ int main(int argc, char *argv[])
     video_uri = gst_filename_to_uri("video.mp4", NULL);
 
     pipeline_str = g_strdup_printf(
-        "uridecodebin name=d uri=\"%s\" ! "
+        "uridecodebin uri=\"%s\" ! "
         "videoconvert ! "
         "videorate ! video/x-raw,framerate=5/1 ! "   //30 FPS -> 5 FPS
         "videoscale ! video/x-raw,width=160,height=90 ! " //Modificacao 3: 1280x720 -> 160x90
         "videoconvert ! video/x-raw,format=GRAY8 ! " //Modificacao 2: colorido -> cinza
         "videoconvert ! autovideosink "
-        "d. ! queue ! audioconvert ! volume volume=10 ! audioconvert ! audioresample ! %s ! "  //Audio PCM (volume: o audio do arquivo e muito baixo)
+        "filesrc location=audio.ogg ! decodebin ! "  //Fonte de audio: audio.ogg (Opus -> PCM)
+        "audioconvert ! audioresample ! %s ! "      //Audio PCM
         "audioconvert ! audioresample ! autoaudiosink",      //reconverte para o formato que a placa de som aceita
         video_uri, audio_caps);
 
@@ -42,7 +43,7 @@ int main(int argc, char *argv[])
 
     //Inicia a reproducao
     gst_element_set_state(pipeline, GST_STATE_PLAYING);
-    g_print("Reproduzindo video.mp4 com audio PCM: %s\n", audio_caps);
+    g_print("Reproduzindo video.mp4 + audio.ogg com audio PCM: %s\n", audio_caps);
 
     //Espera o fim do video ou um erro
     bus = gst_element_get_bus(pipeline);
