@@ -13,12 +13,10 @@ int main(int argc, char *argv[]) {
 
   // Configuracao PCM escolhida na linha de comando: A (padrao) ou B
   if (argc > 1 && argv[1][0] == 'B')
-    audio_caps = "audio/x-raw,rate=8000,format=U8,channels=1"; // B: 8 kHz / 8
-                                                               // bits / mono
+    audio_caps = "audio/x-raw,rate=8000,format=U8,channels=1"; // B: 8 kHz / 8 bits / mono
   else
     audio_caps =
-        "audio/x-raw,rate=44100,format=S16LE,channels=2"; // A: 44,1 kHz / 16
-                                                          // bits / estereo
+        "audio/x-raw,rate=44100,format=S16LE,channels=2"; // A: 44,1 kHz / 16 bits / estereo
 
   // Monta a pipeline com o caminho do video
   video_uri = gst_filename_to_uri("video.mp4", NULL);
@@ -27,16 +25,12 @@ int main(int argc, char *argv[]) {
       "uridecodebin uri=\"%s\" ! "
       "videoconvert ! "
       "videorate ! video/x-raw,framerate=5/1 ! "        // 30 FPS -> 5 FPS
-      "videoscale ! video/x-raw,width=160,height=90 ! " // Modificacao 3:
-                                                        // 1280x720 -> 160x90
-      "videoconvert ! video/x-raw,format=GRAY8 ! " // Modificacao 2: colorido ->
-                                                   // cinza
+      "videoscale ! video/x-raw,width=160,height=90 ! " // 1280x720 -> 160x90
+      "videoconvert ! video/x-raw,format=GRAY8 ! " // colorido -> cinza
       "videoconvert ! autovideosink "
       "filesrc location=audio.ogg ! decodebin ! " // Fonte de audio: audio.ogg
       "audioconvert ! audioresample ! %s ! "      // Audio PCM
-      "audioconvert ! audioresample ! autoaudiosink", // reconverte para o
-                                                      // formato que a placa de
-                                                      // som aceita
+      "audioconvert ! audioresample ! autoaudiosink", // reconverte para oformato que a placa de som aceita
       video_uri, audio_caps);
 
   pipeline = gst_parse_launch(pipeline_str, &error);
