@@ -5,7 +5,6 @@ int main(int argc, char *argv[]) {
   GstBus *bus;
   GstMessage *msg;
   GError *error = NULL;
-  gchar *video_uri;
   gchar *pipeline_str;
   const gchar *audio_caps;
 
@@ -18,11 +17,9 @@ int main(int argc, char *argv[]) {
     audio_caps =
         "audio/x-raw,rate=44100,format=S16LE,channels=2"; // A: 44,1 kHz / 16 bits / estereo
 
-  // Monta a pipeline com o caminho do video
-  video_uri = gst_filename_to_uri("video.mp4", NULL);
-
+  // Monta a pipeline com os caminhos do video e do audio
   pipeline_str = g_strdup_printf(
-      "uridecodebin uri=\"%s\" ! "
+      "filesrc location=video.mp4 ! decodebin ! " // Fonte de video: video.mp4
       "videoconvert ! "
       "videorate ! video/x-raw,framerate=5/1 ! "        // 30 FPS -> 5 FPS
       "videoscale ! video/x-raw,width=160,height=90 ! " // 1280x720 -> 160x90
@@ -31,7 +28,7 @@ int main(int argc, char *argv[]) {
       "filesrc location=audio.ogg ! decodebin ! " // Fonte de audio: audio.ogg
       "audioconvert ! audioresample ! %s ! "      // Audio PCM
       "audioconvert ! audioresample ! autoaudiosink", // reconverte para oformato que a placa de som aceita
-      video_uri, audio_caps);
+      audio_caps);
 
   pipeline = gst_parse_launch(pipeline_str, &error);
 
