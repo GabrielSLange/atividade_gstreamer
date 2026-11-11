@@ -1,2 +1,5 @@
 # Cache/índice do Visual Studio (arquivos travados enquanto o VS está aberto)
 .vs/
+
+# Arquivos temporários gerados pelo script de experimentos
+experimentos/tmp/
