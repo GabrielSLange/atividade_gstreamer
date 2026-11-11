@@ -69,7 +69,7 @@ O UDP não diz a ordem nem o momento de cada pacote. O RTP acrescenta 12 bytes d
 fonte ─► audioconvert ─► audioresample ─► capsfilter ─► rtpL16pay ─► udpsink
 ```
 
-Diagrama completo, com parâmetros e legenda: [pipeline_transmissor.png](diagramas/pipeline_transmissor.png).
+Diagrama completo, com os parâmetros de cada elemento: [pipeline_transmissor.png](diagramas/pipeline_transmissor.png).
 
 | Elemento | O que faz | Por quê |
 |---|---|---|
@@ -94,7 +94,7 @@ transmissor [host] [porta] [teste|mic]      (padrão: 127.0.0.1 5000 teste)
 udpsrc ─► netsim ─► rtpjitterbuffer ─► rtpL16depay ─► audioconvert ─► audioresample ─► autoaudiosink
 ```
 
-Diagrama completo, com parâmetros e legenda: [pipeline_receptor.png](diagramas/pipeline_receptor.png).
+Diagrama completo, com os parâmetros de cada elemento: [pipeline_receptor.png](diagramas/pipeline_receptor.png).
 
 | Elemento | O que faz | Por quê |
 |---|---|---|
@@ -178,7 +178,7 @@ Os dois arquivos seguem os mesmos 4 passos (padrão do *Basic Tutorial 2* do GSt
 Compilar (precisa de GStreamer e gcc/MinGW; ajuste os caminhos no topo do `build.bat` se necessário):
 
 ```
-build.bat
+.\build.bat
 ```
 
 Em **dois terminais**, receptor primeiro:

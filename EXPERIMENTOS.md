@@ -185,7 +185,7 @@ pequena o suficiente para a aplicação continuar interativa.
 ## 8. Como reproduzir
 
 ```
-build.bat
+.\build.bat
 powershell -ExecutionPolicy Bypass -File experimentos\rodar_experimentos.ps1
 ```
 

@@ -36,7 +36,7 @@ ESTUDO.md                  guia de estudo para a apresentação
 ## Compilação
 
 ```
-build.bat
+.\build.bat
 ```
 
 Gera `bin\transmissor.exe` e `bin\receptor.exe`. Se o GStreamer ou o MinGW estiverem em outra pasta, edite as
@@ -113,7 +113,7 @@ Recebendo na porta UDP 5000 | jitter buffer: 200 ms | rede simulada: perda 10%, 
 
 ## Como funciona
 
-Os diagramas completos, com parâmetros e legenda, estão em [diagramas/](diagramas/):
+Os diagramas completos, com os parâmetros de cada elemento, estão em [diagramas/](diagramas/):
 [transmissor](diagramas/pipeline_transmissor.png) e [receptor](diagramas/pipeline_receptor.png).
 
 **Transmissor** (`src/transmissor.c`): `audiotestsrc` (ou `autoaudiosrc`) → `audioconvert` → `audioresample` →
