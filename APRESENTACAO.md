@@ -17,7 +17,7 @@ Cada integrante fala cerca de **3 minutos** (total ≈ 12 min). Escrevam os nome
 ## Antes de começar (todos)
 
 - [ ] `build.bat` rodou sem erro e a pasta `bin\` está atualizada.
-- [ ] **Testar o som antes**: iniciar receptor e transmissor e ouvir o tom de 440 Hz. Isso ainda **não foi ouvido** por ninguém.
+- [ ] **Testar o som antes**: iniciar receptor e transmissor e ouvir a escala cromática. Isso ainda **não foi ouvido** por ninguém.
 - [ ] Dois terminais abertos na pasta do projeto: **A** (receptor) e **B** (transmissor). Um terceiro (**C**) só se forem fazer a demonstração **opcional** de porta ocupada (parte 3).
 - [ ] Volume do PC moderado e nada mais usando a porta 5000.
 - [ ] Abertos e prontos: `diagramas/pipeline_transmissor.png`, `diagramas/pipeline_receptor.png`, `EXPERIMENTOS.md` e os arquivos `src/transmissor.c` e `src/receptor.c` no editor.
@@ -49,7 +49,7 @@ Cada integrante fala cerca de **3 minutos** (total ≈ 12 min). Escrevam os nome
 **Demonstração**
 1. Terminal A: `bin\receptor.exe`
 2. Terminal B: `bin\transmissor.exe` (deixar rodando até o fim)
-3. Todos ouvem o tom de 440 Hz. Mostrar que o receptor imprime `[STATS]` a cada segundo, com perdidos = 0.
+3. Todos ouvem a escala cromática (do dó ao dó agudo e de volta). Mostrar que o receptor imprime `[STATS]` a cada segundo, com perdidos = 0.
 
 **Passa a palavra:** "Agora o [nome] vai mostrar como o transmissor está montado."
 
@@ -65,7 +65,7 @@ Cada integrante fala cerca de **3 minutos** (total ≈ 12 min). Escrevam os nome
 
 **O que falar**
 - Pipeline: `audiotestsrc → audioconvert → audioresample → capsfilter → rtpL16pay → udpsink`.
-- `audiotestsrc` gera o tom (ou `autoaudiosrc` pega o microfone). `is-live=TRUE` gera em tempo real, como um microfone.
+- `audiotestsrc` gera o som: a **escala cromática** (o programa troca a propriedade `freq` a cada 0,4 s) ou um tom fixo de 440 Hz; `autoaudiosrc` pega o microfone. `is-live=TRUE` gera em tempo real, como um microfone.
 - `audioconvert` e `audioresample` adaptam qualquer fonte ao formato certo. O `capsfilter` força **S16BE, 44.100 Hz, 2 canais**: o RTP usa a ordem de bytes de rede (big-endian) e o `rtpL16pay` só aceita esse formato.
 - `rtpL16pay` (pt=96) encapsula em pacotes RTP e `udpsink` envia para `host:porta`, que são argumentos do programa.
 - Montamos as pipelines **elemento a elemento**, e não com `gst_parse_launch`, porque o enunciado pede construção programática e porque precisamos de acesso aos elementos (isso pesa na parte 3).
@@ -74,10 +74,10 @@ Cada integrante fala cerca de **3 minutos** (total ≈ 12 min). Escrevam os nome
 
 | Linhas | O que é |
 |---|---|
-| 24–31 | Cria os elementos (`gst_element_factory_make`) |
-| 38–47 | Configura caps, `pt`, `host` e `port` (`g_object_set`) |
-| 49–51 | Adiciona e liga (`gst_element_link_many`) |
-| 57–63 | Executa (`PLAYING`) e espera erros no *bus* |
+| 35–42 | Cria os elementos (`gst_element_factory_make`) |
+| 49–60 | Configura fonte, caps, `pt`, `host` e `port` (`g_object_set`) |
+| 62–69 | Adiciona e liga (`gst_element_link_many`) |
+| 70–87 | Executa (`PLAYING`), espera erros no *bus* e troca a nota (`freq`) a cada 400 ms |
 
 **Dificuldade para comentar:** o `udpsink` não avisa se o host não existe (ele só não envia nada); o programa tem que conferir o IP.
 

@@ -73,7 +73,7 @@ Diagrama completo, com os parâmetros de cada elemento: [pipeline_transmissor.pn
 
 | Elemento | O que faz | Por quê |
 |---|---|---|
-| `audiotestsrc` (ou `autoaudiosrc`) | Gera um tom de 440 Hz (ou captura o microfone). | É a **fonte** do áudio. `is-live=TRUE` gera em tempo real, como um microfone. `volume=0.3` para não ficar alto. |
+| `audiotestsrc` (ou `autoaudiosrc`) | Gera a escala cromática (ou um tom fixo de 440 Hz; com `autoaudiosrc`, captura o microfone). | É a **fonte** do áudio. `is-live=TRUE` gera em tempo real, como um microfone. `volume=0.3` para não ficar alto. |
 | `audioconvert` | Converte o formato das amostras. | O microfone pode entregar float; precisamos de inteiros de 16 bits. |
 | `audioresample` | Muda a taxa de amostragem. | O microfone pode ser 48 kHz; precisamos de 44,1 kHz. |
 | `capsfilter` | Obriga o formato: `S16BE, 44100 Hz, 2 canais`. | É o formato que o `rtpL16pay` aceita. |
@@ -83,7 +83,7 @@ Diagrama completo, com os parâmetros de cada elemento: [pipeline_transmissor.pn
 Uso:
 
 ```
-transmissor [host] [porta] [teste|mic]      (padrão: 127.0.0.1 5000 teste)
+transmissor [host] [porta] [escala|teste|mic]      (padrão: 127.0.0.1 5000 escala)
 ```
 
 ---
@@ -202,7 +202,7 @@ bin\receptor.exe 5000 20 0 100                (simula atraso de até 100 ms com 
 
 > Em PCs diferentes, o firewall do Windows pode pedir permissão para o receptor.
 
-**O que deve acontecer:** o receptor toca um tom contínuo de 440 Hz (um "bipe" longo) e imprime uma linha
+**O que deve acontecer:** o receptor toca a escala cromática (sobe do dó ao dó agudo e desce, uma nota a cada 0,4 s) e imprime uma linha
 `[STATS]` por segundo.
 
 ---
@@ -235,7 +235,7 @@ bin\receptor.exe 5000 20 0 100                (simula atraso de até 100 ms com 
 - O `netsim` simula a rede dentro do receptor; ainda não testamos com uma rede real nem em dois PCs.
 - A latência só muda reiniciando o receptor com outro valor (não dá para trocar com ele rodando).
 - Se o host de destino não existir, o transmissor não avisa (o `udpsink` não reclama).
-- Fontes suportadas: tom e microfone (não há arquivo).
+- Fontes suportadas: escala cromática, tom de 440 Hz e microfone (não há arquivo).
 
 ---
 

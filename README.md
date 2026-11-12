@@ -54,16 +54,18 @@ bin\receptor.exe
 bin\transmissor.exe
 ```
 
-O receptor toca um tom contínuo de 440 Hz. `Ctrl+C` encerra qualquer um dos programas.
+O receptor toca a escala cromática (do dó ao dó agudo e de volta, uma nota a cada 0,4 s). `Ctrl+C` encerra
+qualquer um dos programas.
 
 ### Argumentos
 
 | Programa | Uso | Padrão |
 |---|---|---|
-| Transmissor | `transmissor [host] [porta] [teste\|mic]` | `127.0.0.1 5000 teste` |
+| Transmissor | `transmissor [host] [porta] [escala\|teste\|mic]` | `127.0.0.1 5000 escala` |
 | Receptor | `receptor [porta] [latencia_ms] [perda_%] [atraso_max_ms]` | `5000 200 0 0` |
 
-- **`teste`**: tom senoidal de 440 Hz gerado pelo GStreamer. **`mic`**: microfone padrão do sistema.
+- **`escala`**: escala cromática gerada pelo GStreamer (a frequência do `audiotestsrc` muda a cada 0,4 s).
+  **`teste`**: tom senoidal fixo de 440 Hz. **`mic`**: microfone padrão do sistema.
   (Com `mic` no mesmo computador, use fones para evitar microfonia.)
 - **`latencia_ms`**: latência do `rtpjitterbuffer`, ou seja, quanto tempo ele segura os pacotes.
 - **`perda_%`** e **`atraso_max_ms`**: simulam uma rede ruim com o elemento `netsim` (descarta essa porcentagem
@@ -93,7 +95,7 @@ bin\transmissor.exe 127.0.0.1 5000 mic
 Transmissor:
 
 ```
-Transmitindo tom de teste para 127.0.0.1:5000 (Ctrl+C para sair)
+Transmitindo escala cromatica para 127.0.0.1:5000 (Ctrl+C para sair)
 ```
 
 Receptor (uma linha `[STATS]` por segundo; uma linha `[PERDA]` para cada pacote perdido):
@@ -143,7 +145,8 @@ O registro completo (parâmetros, 16 execuções, análise, limitações e concl
 powershell -ExecutionPolicy Bypass -File experimentos\rodar_experimentos.ps1
 ```
 
-Leva cerca de 4 minutos e grava `experimentos\resultados.csv`. Resumo: com jitter de até 80 ms, latências de 20 e
+Leva cerca de 4 minutos e grava `experimentos\resultados.csv`. Os experimentos usam o tom fixo de 440 Hz
+(`teste`), não a escala. Resumo: com jitter de até 80 ms, latências de 20 e
 50 ms perderam de 43% a 50% dos pacotes e as de 200 e 1000 ms não perderam nenhum; já a perda real de 5% apareceu
 igual em todas as latências, pois o jitter buffer não recupera pacotes perdidos.
 
@@ -173,4 +176,4 @@ gst-launch-1.0 udpsrc port=5000 caps="application/x-rtp,media=audio,clock-rate=4
 
 - Testado apenas no Windows e em `127.0.0.1`; o atraso e a perda dos experimentos são **simulados** (`netsim`).
 - Codec único (L16, sem compressão, ~1,4 Mbps); a latência do jitter buffer é fixa e só muda reiniciando o receptor.
-- O transmissor não tem fonte de arquivo; só tom de teste e microfone.
+- O transmissor não tem fonte de arquivo; só escala cromática, tom de teste e microfone.

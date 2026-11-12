@@ -3,7 +3,10 @@
 #
 # Uso (a partir da raiz do projeto, depois de rodar build.bat):
 #   powershell -ExecutionPolicy Bypass -File experimentos\rodar_experimentos.ps1
-#   (teste rapido: ... -Duracao 4 -Latencias 200)
+#   (teste rapido: ... -Duracao 4 -Latencias 200; use -Porta 5001 se a 5000 estiver ocupada)
+#
+# O transmissor roda com a fonte "teste" (tom fixo de 440 Hz): a analise do PCM abaixo assume esse tom,
+# entao nao serve para a escala cromatica (que e o padrao do transmissor).
 #
 # Como funciona: gera uma COPIA do receptor.c em experimentos\tmp (o src\receptor.c nao e alterado)
 # em que a saida de audio vira um arquivo .raw e o programa termina sozinho. Para cada combinacao,
@@ -12,6 +15,7 @@
 # x[n] = 2*cos(w)*x[n-1] - x[n-2]; um desvio grande indica uma descontinuidade (um "clique").
 param(
   [int]$Duracao = 10,
+  [int]$Porta = 5000,
   [int[]]$Latencias = @(20, 50, 200, 1000),
   [string]$GstDir = "C:\Program Files\gstreamer\1.0\mingw_x86_64",
   [string]$MingwDir = "C:\mingw64\mingw64\bin"
@@ -101,10 +105,10 @@ $linhas = @()
 foreach ($c in $cenarios) {
   foreach ($lat in $Latencias) {
     Remove-Item $saida -ErrorAction SilentlyContinue
-    $argsRx = @("5000", "$lat", "$($c.perda)", "$($c.atraso)", "`"$saida`"", "$($Duracao + 3)")
+    $argsRx = @("$Porta", "$lat", "$($c.perda)", "$($c.atraso)", "`"$saida`"", "$($Duracao + 3)")
     $rx = Start-Process $exe -ArgumentList $argsRx -RedirectStandardOutput $out -RedirectStandardError $err -PassThru -WindowStyle Hidden
     Start-Sleep -Milliseconds 700
-    $t = Start-Process $tx -PassThru -WindowStyle Hidden -RedirectStandardOutput (Join-Path $tmp "tx.out")
+    $t = Start-Process $tx -ArgumentList @("127.0.0.1", "$Porta", "teste") -PassThru -WindowStyle Hidden -RedirectStandardOutput (Join-Path $tmp "tx.out")
     Start-Sleep -Seconds $Duracao
     Stop-Process -Id $t.Id -Force
     if (-not $rx.WaitForExit(($Duracao + 15) * 1000)) {
