@@ -18,7 +18,7 @@ Cada integrante fala cerca de **3 minutos** (total ≈ 12 min). Escrevam os nome
 
 - [ ] `build.bat` rodou sem erro e a pasta `bin\` está atualizada.
 - [ ] **Testar o som antes**: iniciar receptor e transmissor e ouvir o tom de 440 Hz. Isso ainda **não foi ouvido** por ninguém.
-- [ ] Dois terminais abertos na pasta do projeto: **A** (receptor) e **B** (transmissor). Um terceiro (**C**) para a parte 3.
+- [ ] Dois terminais abertos na pasta do projeto: **A** (receptor) e **B** (transmissor). Um terceiro (**C**) só se forem fazer a demonstração **opcional** de porta ocupada (parte 3).
 - [ ] Volume do PC moderado e nada mais usando a porta 5000.
 - [ ] Abertos e prontos: `diagramas/pipeline_transmissor.png`, `diagramas/pipeline_receptor.png`, `EXPERIMENTOS.md` e os arquivos `src/transmissor.c` e `src/receptor.c` no editor.
 - [ ] **Preencher as observações auditivas** da seção 5 do `EXPERIMENTOS.md` (só quem ouve consegue).
