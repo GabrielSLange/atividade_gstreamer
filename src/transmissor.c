@@ -8,7 +8,12 @@
  *   rtpL16pay  : encapsula o PCM em pacotes RTP (payload type 96)
  *   udpsink    : envia os pacotes para host:porta
  *
- * Uso: transmissor [host] [porta] [escala|teste|mic]     (padrão: 127.0.0.1 5000 escala)
+ * Uso: transmissor [host] [porta] [escala|teste|mic] [vlc]     (padrão: 127.0.0.1 5000 escala, RTP)
+ *
+ * Com o 4º argumento "vlc", em vez de RTP/L16 envia MPEG-TS com áudio AAC, formato que o VLC reproduz
+ * (no VLC, abrir udp://@:porta):
+ *
+ *   fonte -> audioconvert -> audioresample -> avenc_aac -> aacparse -> mpegtsmux -> udpsink
  */
 #include <gst/gst.h>
 #include <stdlib.h>
@@ -27,6 +32,7 @@ int main(int argc, char *argv[]) {
   const gchar *modo = argc > 3 ? argv[3] : "escala";
   gboolean usar_mic = strcmp(modo, "mic") == 0;
   gboolean usar_escala = strcmp(modo, "escala") == 0;
+  gboolean usar_vlc = argc > 4 && strcmp(argv[4], "vlc") == 0;
   if (!usar_mic && !usar_escala && strcmp(modo, "teste") != 0) {
     g_printerr("Erro: fonte '%s' invalida. Use escala, teste ou mic.\n", modo);
     return 1;
@@ -37,11 +43,13 @@ int main(int argc, char *argv[]) {
   GstElement *fonte = gst_element_factory_make(usar_mic ? "autoaudiosrc" : "audiotestsrc", "fonte");
   GstElement *conv = gst_element_factory_make("audioconvert", "conv");
   GstElement *resample = gst_element_factory_make("audioresample", "resample");
-  GstElement *filtro = gst_element_factory_make("capsfilter", "filtro");
-  GstElement *pay = gst_element_factory_make("rtpL16pay", "pay");
+  /* No modo vlc, capsfilter e rtpL16pay dão lugar a avenc_aac + aacparse + mpegtsmux */
+  GstElement *filtro = gst_element_factory_make(usar_vlc ? "avenc_aac" : "capsfilter", "filtro");
+  GstElement *parse = usar_vlc ? gst_element_factory_make("aacparse", "parse") : NULL;
+  GstElement *pay = gst_element_factory_make(usar_vlc ? "mpegtsmux" : "rtpL16pay", "pay");
   GstElement *udp = gst_element_factory_make("udpsink", "udp");
 
-  if (!pipeline || !fonte || !conv || !resample || !filtro || !pay || !udp) {
+  if (!pipeline || !fonte || !conv || !resample || !filtro || !pay || !udp || (usar_vlc && !parse)) {
     g_printerr("Erro: nao foi possivel criar os elementos (plugins do GStreamer instalados?).\n");
     return 1;
   }
@@ -52,16 +60,21 @@ int main(int argc, char *argv[]) {
   if (usar_escala)
     g_object_set(fonte, "freq", NOTAS[0], NULL); /* a escala começa no dó */
 
-  GstCaps *caps = gst_caps_from_string("audio/x-raw,format=S16BE,rate=44100,channels=2");
-  g_object_set(filtro, "caps", caps, NULL);
-  gst_caps_unref(caps);
-
-  g_object_set(pay, "pt", 96, NULL);
+  if (!usar_vlc) {
+    GstCaps *caps = gst_caps_from_string("audio/x-raw,format=S16BE,rate=44100,channels=2");
+    g_object_set(filtro, "caps", caps, NULL);
+    gst_caps_unref(caps);
+    g_object_set(pay, "pt", 96, NULL);
+  }
   g_object_set(udp, "host", host, "port", porta, NULL);
 
   /* 3. Adiciona à pipeline e liga os elementos */
   gst_bin_add_many(GST_BIN(pipeline), fonte, conv, resample, filtro, pay, udp, NULL);
-  if (!gst_element_link_many(fonte, conv, resample, filtro, pay, udp, NULL)) {
+  if (usar_vlc)
+    gst_bin_add(GST_BIN(pipeline), parse);
+  gboolean ligou = usar_vlc ? gst_element_link_many(fonte, conv, resample, filtro, parse, pay, udp, NULL)
+                            : gst_element_link_many(fonte, conv, resample, filtro, pay, udp, NULL);
+  if (!ligou) {
     g_printerr("Erro: nao foi possivel ligar os elementos da pipeline.\n");
     gst_object_unref(pipeline);
     return 1;
@@ -71,6 +84,8 @@ int main(int argc, char *argv[]) {
   gst_element_set_state(pipeline, GST_STATE_PLAYING);
   g_print("Transmitindo %s para %s:%d (Ctrl+C para sair)\n",
           usar_mic ? "microfone" : (usar_escala ? "escala cromatica" : "tom de teste"), host, porta);
+  if (usar_vlc)
+    g_print("Modo VLC (MPEG-TS): no VLC, abra udp://@:%d\n", porta);
 
   /* O audiotestsrc gera um tom de uma frequência só. Para tocar a escala, a cada MS_POR_NOTA ms
    * o laço troca a propriedade "freq" pela próxima nota (sobe até o dó seguinte, desce e repete). */

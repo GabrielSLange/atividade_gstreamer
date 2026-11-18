@@ -23,6 +23,7 @@ diagramas/                 diagramas das pipelines (.excalidraw editável e .png
 experimentos/              script dos experimentos e resultados.csv
 EXPERIMENTOS.md            registro dos experimentos, análise e conclusão
 ESTUDO.md                  guia de estudo para a apresentação
+REGISTRO_TESTES.docx       registro, com campos a preencher, dos testes com o VLC e entre dois computadores
 ```
 
 ## Requisitos
@@ -61,11 +62,13 @@ qualquer um dos programas.
 
 | Programa | Uso | Padrão |
 |---|---|---|
-| Transmissor | `transmissor [host] [porta] [escala\|teste\|mic]` | `127.0.0.1 5000 escala` |
+| Transmissor | `transmissor [host] [porta] [escala\|teste\|mic] [vlc]` | `127.0.0.1 5000 escala` (RTP) |
 | Receptor | `receptor [porta] [latencia_ms] [perda_%] [atraso_max_ms]` | `5000 200 0 0` |
 
 - **`escala`**: escala cromática gerada pelo GStreamer (a frequência do `audiotestsrc` muda a cada 0,4 s).
   **`teste`**: tom senoidal fixo de 440 Hz. **`mic`**: microfone padrão do sistema.
+- **`vlc`** (4º argumento): em vez de RTP/L16, envia MPEG-TS com áudio AAC, que o VLC reproduz (ver "Teste de rede
+  com o VLC"). Esse modo não serve para o `receptor.exe`.
   (Com `mic` no mesmo computador, use fones para evitar microfonia.)
 - **`latencia_ms`**: latência do `rtpjitterbuffer`, ou seja, quanto tempo ele segura os pacotes.
 - **`perda_%`** e **`atraso_max_ms`**: simulam uma rede ruim com o elemento `netsim` (descarta essa porcentagem
@@ -84,11 +87,39 @@ bin\transmissor.exe 127.0.0.1 5000 mic
 
 ### Em dois computadores
 
-1. No receptor, descubra o IP (`ipconfig`) e inicie `bin\receptor.exe`. Permita a porta no Firewall do Windows se
-   ele perguntar.
-2. No transmissor, passe esse IP: `bin\transmissor.exe 192.168.0.20 5000`.
+Os dois computadores precisam do GStreamer instalado (e do gcc, se for compilar) e estar na mesma rede, por Wi-Fi
+ou cabo.
 
-(Não testado em dois computadores: todos os testes foram em `127.0.0.1`.)
+1. No receptor, descubra o IP (`ipconfig`) e inicie `bin\receptor.exe 5000 200` (porta e latência em ms).
+   Permita a porta no Firewall do Windows se ele perguntar.
+2. No transmissor, passe o IP do receptor e a mesma porta: `bin\transmissor.exe 192.168.0.20 5000`.
+3. Repita com outra latência, por exemplo `bin\receptor.exe 5000 20`, e compare o que ouve e o `[STATS]`.
+
+Nenhum endereço está fixo no código: o IP e a porta do transmissor e a porta e a latência do receptor são
+argumentos. Foi testado enviando para o IP do Wi-Fi da própria máquina, e não só para `127.0.0.1`; o teste com
+**dois computadores de verdade** ainda precisa ser feito. Se a rede bloquear a comunicação entre dispositivos
+(isolamento de clientes), use cabo direto com IPs fixos na mesma sub-rede, por exemplo `192.168.10.1` e
+`192.168.10.2`, máscara `255.255.255.0`.
+
+### Teste de rede com o VLC
+
+O VLC só valida a conectividade (vídeo MPEG-TS sobre UDP); o áudio do projeto usa RTP sobre UDP.
+
+1. No dispositivo receptor, abra o VLC, Mídia, Abrir Fluxo de Rede, e informe `udp://@:5000`. No iPhone: aba Rede,
+   Abrir fluxo de rede.
+2. No transmissor, rode o comando abaixo, trocando `IP_DO_RECEPTOR` (as aspas nas caps são necessárias no
+   PowerShell; `key-int-max` e `config-interval` fazem a imagem aparecer em poucos segundos):
+
+```
+gst-launch-1.0 -v videotestsrc is-live=true pattern=ball ! "video/x-raw,width=640,height=360,framerate=15/1" ! videoconvert ! x264enc tune=zerolatency bitrate=500 speed-preset=ultrafast key-int-max=15 ! h264parse config-interval=-1 ! mpegtsmux ! udpsink host=IP_DO_RECEPTOR port=5000
+```
+
+Para ouvir no VLC o áudio do próprio transmissor (por exemplo, no iPhone), use o modo `vlc` e abra
+`udp://@:5000` no VLC:
+
+```
+bin\transmissor.exe IP_DO_VLC 5000 escala vlc
+```
 
 ### O que aparece no console
 
@@ -174,6 +205,7 @@ gst-launch-1.0 udpsrc port=5000 caps="application/x-rtp,media=audio,clock-rate=4
 
 ## Limitações
 
-- Testado apenas no Windows e em `127.0.0.1`; o atraso e a perda dos experimentos são **simulados** (`netsim`).
+- Testado apenas no Windows, em `127.0.0.1` e no IP do Wi-Fi da própria máquina (ainda sem dois computadores); o
+  atraso e a perda dos experimentos são **simulados** (`netsim`).
 - Codec único (L16, sem compressão, ~1,4 Mbps); a latência do jitter buffer é fixa e só muda reiniciando o receptor.
 - O transmissor não tem fonte de arquivo; só escala cromática, tom de teste e microfone.
