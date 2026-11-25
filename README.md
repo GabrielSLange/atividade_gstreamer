@@ -17,7 +17,11 @@ montadas elemento a elemento (`gst_element_factory_make` + `gst_element_link_man
 ```
 src/transmissor.c          código do transmissor
 src/receptor.c             código do receptor (jitter buffer, diagnóstico de perdas, simulação de rede)
+src/servidor.c, cliente.c  interfaces gráficas GTK 3 (atividade final)
 build.bat                  compila os dois programas para bin/
+gui.bat                    compila e abre as interfaces gráficas (precisa do MSYS2)
+parte1/                    script e resultados da investigação de desempenho (atividade final)
+RELATORIO_PARTE1.docx      relatório da Parte 1 (FPS, CPU e análise)
 bin/                       executáveis gerados (transmissor.exe e receptor.exe)
 diagramas/                 diagramas das pipelines (.excalidraw editável e .png)
 experimentos/              script dos experimentos e resultados.csv
@@ -143,6 +147,39 @@ Recebendo na porta UDP 5000 | jitter buffer: 200 ms | rede simulada: perda 10%, 
 | `perdidos` | pacotes dados como perdidos (não chegaram a tempo) |
 | `atrasados` | pacotes que chegaram **depois** de já terem sido dados como perdidos (descartados) |
 | `duplicados` | pacotes repetidos |
+
+## Interfaces gráficas (atividade final)
+
+Duas janelas GTK 3 que montam as pipelines em C (sem `gst-launch`): o **servidor** (`src/servidor.c`) transmite
+vídeo e o **cliente** (`src/cliente.c`) recebe e mostra o vídeo dentro da própria janela.
+
+- **Servidor:** IP de destino, porta UDP, resolução, quadros por segundo e bitrate; botões Iniciar e Interromper;
+  indicador de estado.
+- **Cliente:** porta UDP, área de vídeo, botões Iniciar e Interromper; indicador de estado ("aguardando vídeo",
+  "recebendo vídeo", "sem pacotes há 3 s" e erros, como porta em uso).
+- **Pipelines:** `videotestsrc, capsfilter, videoconvert, x264enc, h264parse, mpegtsmux, udpsink` no servidor e
+  `udpsrc, tsdemux, h264parse, avdec_h264, videoconvert, gtksink` no cliente, com os ajustes que deram o melhor
+  resultado na Parte 1 (`key-int-max` igual ao FPS, `config-interval=-1`, `alignment=7`, `sync=false`). Os
+  números estão no `RELATORIO_PARTE1.docx`.
+
+Requisito: **MSYS2**, ambiente UCRT64, com GTK 3 e GStreamer (o GTK não vem no GStreamer usado pelo `build.bat`).
+No terminal UCRT64 do MSYS2:
+
+```
+pacman -S mingw-w64-ucrt-x86_64-gcc mingw-w64-ucrt-x86_64-pkgconf mingw-w64-ucrt-x86_64-gtk3 mingw-w64-ucrt-x86_64-gstreamer mingw-w64-ucrt-x86_64-gst-plugins-base mingw-w64-ucrt-x86_64-gst-plugins-good mingw-w64-ucrt-x86_64-gst-plugins-bad mingw-w64-ucrt-x86_64-gst-plugins-ugly mingw-w64-ucrt-x86_64-gst-libav mingw-w64-ucrt-x86_64-gst-plugin-gtk
+```
+
+Depois, na pasta do projeto (o `gui.bat` coloca o MSYS2 na frente do `PATH`, para o programa não carregar as
+bibliotecas do outro GStreamer):
+
+```
+.\gui.bat build
+.\gui.bat cliente
+.\gui.bat servidor
+```
+
+Abra o cliente primeiro (porta 5000) e depois o servidor (IP `127.0.0.1`, porta 5000) e clique em Iniciar nos dois.
+Para outro computador, use o IP dele no servidor. Testado no mesmo computador; entre dispositivos ainda não.
 
 ## Como funciona
 
